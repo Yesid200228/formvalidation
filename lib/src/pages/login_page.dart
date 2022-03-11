@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:formvalidation/src/blocs/login_bloc.dart';
 import 'package:formvalidation/src/blocs/provider.dart';
@@ -49,7 +50,7 @@ class LoginPage extends StatelessWidget {
                 SizedBox(height: 30.0),
                 _crearPassword(bloc),
                 SizedBox(height: 30.0),
-                _crearBoton()
+                _crearBoton(bloc)
               ],
             ),
           ),
@@ -117,20 +118,38 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  Widget _crearBoton() {
-    // ignore: deprecated_member_use
-    return RaisedButton(
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 80, vertical: 15.0),
-        child: Text('Ingresar'),
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-      elevation: 0.0,
-      color: Colors.deepPurple,
-      textColor: Colors.white,
-      onPressed: () {},
+  Widget _crearBoton(LoginBLoc bloc) {
+    // formValidStream
+    //snapshot.hasData
+    return StreamBuilder(
+      stream: bloc.formValidStream,
+      builder: (BuildContext context,AsyncSnapshot snapshot){
+        // ignore: deprecated_member_use
+        return RaisedButton(
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 80, vertical: 15.0),
+            child: Text('Ingresar'),
+          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+          elevation: 0.0,
+          color: Colors.deepPurple,
+          textColor: Colors.white,
+          onPressed: snapshot.hasData ? ()=> _login(bloc,context) : null ,
+        );
+      },
     );
   }
+
+  _login(LoginBLoc bLoc,BuildContext context){
+    print('=====================');
+    print('Email: ${bLoc.email}');
+    print('Password ${bLoc.password}');
+    print('=====================');
+
+    Navigator.pushReplacementNamed(context, 'home');
+
+  }
+
 
   Widget _creatFondo(BuildContext context) {
     final size = MediaQuery.of(context).size;
