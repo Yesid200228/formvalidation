@@ -83,7 +83,7 @@ class LoginPage extends StatelessWidget {
                   ),
                   counterText: snapshot.data,
                   errorText: snapshot.error
-                  ),
+                ),
               onChanged: bloc.changeEmail,
             ),
           );

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:formvalidation/src/models/producto_model.dart';
+import 'package:formvalidation/src/pages/providers/productos_providers.dart';
 import 'package:formvalidation/src/utlis/utils.dart' as utils;
 
 class ProductPage extends StatefulWidget {
@@ -7,12 +9,30 @@ class ProductPage extends StatefulWidget {
   _ProductPageState createState() => _ProductPageState();
 }
 
+
+
 class _ProductPageState extends State<ProductPage> {
   final formKey = GlobalKey<FormState>();
+  final scaffoldkey = GlobalKey<ScaffoldState>();
+  final productosProvider = new ProductosProvider();
+
+  ProductoModel producto = new ProductoModel();
+
+
+
+  bool _guardando = false;
 
   @override
   Widget build(BuildContext context) {
+
+    final ProductoModel prodData = ModalRoute.of(context).settings.arguments;
+
+    if (prodData != null) {
+      producto = prodData;
+    }
+
     return Scaffold(
+      key: scaffoldkey,
       appBar: AppBar(
         title: Text('Producto'),
         actions: [
@@ -28,8 +48,10 @@ class _ProductPageState extends State<ProductPage> {
             key: formKey,
             child: Column(
               children: [
-                _crearNombre(),
-                _crearPrecio(),
+                _crearTitulo(),
+                _crearAutor(),
+                _crearEdicion(),
+
                 _crearBoton(),
               ],
             ),
@@ -39,10 +61,12 @@ class _ProductPageState extends State<ProductPage> {
     );
   }
 
-  Widget _crearNombre() {
+  Widget _crearTitulo() {
     return TextFormField(
+      initialValue: producto.titulo,
       textCapitalization: TextCapitalization.sentences,
-      decoration: InputDecoration(labelText: 'Producto'),
+      decoration: InputDecoration(labelText: 'Titulo'),
+      onSaved: (value) => producto.titulo = value,
       validator: (value){
         if (value.length < 3) {
           return 'Ingrese el nombre del producto';
@@ -52,11 +76,28 @@ class _ProductPageState extends State<ProductPage> {
       },
     );
   }
-
-  Widget _crearPrecio() {
+    Widget _crearAutor() {
     return TextFormField(
+      initialValue: producto.autor,
+      textCapitalization: TextCapitalization.sentences,
+      decoration: InputDecoration(labelText: 'Autor'),
+      onSaved: (value) => producto.autor = value,
+      validator: (value){
+        if (value.length < 1) {
+          return 'Ingrese el nombre del producto';
+        }else{
+          return null;
+        }
+      },
+    );
+  }
+
+  Widget _crearEdicion() {
+    return TextFormField(
+      initialValue: producto.edicion.toString(),
       keyboardType: TextInputType.number,
-      decoration: InputDecoration(labelText: 'Precio'),
+      decoration: InputDecoration(labelText: 'Edicion'),
+      onSaved: (value) => producto.edicion = int.parse(value),
       validator: (value){
         if (utils.isNumeric(value)) {
           return null;
@@ -66,6 +107,18 @@ class _ProductPageState extends State<ProductPage> {
       }
     );
   }
+
+  // Widget _crearDisponible(){
+  //   return SwitchListTile(
+  //     value: producto.disponible ==1 ? true :false,
+  //     title: Text('disponible'),
+  //     activeColor: Colors.deepPurple,
+
+  //     onChanged: (value) => setState((){  
+  //       producto.disponible =  (producto.disponible == 1 ? value = true: value=false) as int;
+  //     })
+  //   );
+  // }
 
   Widget _crearBoton() {
     return
@@ -77,7 +130,7 @@ class _ProductPageState extends State<ProductPage> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
-          onPressed: _submit,
+          onPressed: (_guardando) ? null : _submit,
           child: Row(
             children: [Icon(Icons.save),SizedBox(width: 5,),  Text('Guardar')],
           ),
@@ -87,8 +140,33 @@ class _ProductPageState extends State<ProductPage> {
 
   void _submit(){
     if(!formKey.currentState.validate()) return;
+    formKey.currentState.save();
 
-    print('Todo Ok');
+    
+    setState(() {_guardando= true;});
 
+    if (producto.id == null) {
+      productosProvider.crearProducto(producto);
+    }else{
+      productosProvider.editarProducto(producto);
+    }
+
+    // setState(() {_guardando= false;});
+
+    mostrarSnacbar('Registro guardado');
+
+    Navigator.pop(context);
+
+  }
+
+
+
+  void mostrarSnacbar(String mensaje) {
+    final snackbar = SnackBar(
+      content: Text(mensaje),
+      duration: Duration(milliseconds: 1500),
+    ); 
+    // ignore: deprecated_member_use
+    scaffoldkey.currentState.showSnackBar(snackbar);
   }
 }
